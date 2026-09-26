@@ -1,0 +1,75 @@
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  margin-bottom: 30px;
+
+  h1 {
+    margin: 0;
+    font-size: 32px;
+  }
+
+  p {
+    color: #6b7280;
+    margin-top: 5px;
+  }
+}
+
+.summary {
+  margin-bottom: 40px;
+}
+
+.balance-card {
+  background: white;
+  padding: 30px;
+  border-radius: 15px;
+
+  p {
+    margin: 0;
+    color: #6b7280;
+  }
+
+  h2 {
+    font-size: 36px;
+    margin: 10px 0;
+  }
+
+  span {
+    color: #9ca3af;
+  }
+}
+
+.accounts {
+
+  h2 {
+    margin-bottom: 20px;
+  }
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.account-card {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+
+  p {
+    margin: 0;
+    color: #6b7280;
+  }
+
+  h3 {
+    font-size: 25px;
+    margin: 12px 0;
+  }
+
+  span {
+    color: #9ca3af;
+  }
+}

@@ -1,0 +1,50 @@
+.app-container {
+  display: flex;
+  min-height: 100vh;
+  background: #f4f6f8;
+}
+
+.sidebar {
+  width: 240px;
+  background: #111827;
+  color: white;
+  padding: 30px 20px;
+}
+
+.logo {
+  margin-bottom: 40px;
+
+  h1 {
+    margin: 0;
+    font-size: 28px;
+  }
+}
+
+nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  a {
+    color: #d1d5db;
+    text-decoration: none;
+    padding: 12px 15px;
+    border-radius: 8px;
+    transition: 0.2s;
+
+    &:hover {
+      background: #1f2937;
+      color: white;
+    }
+
+    &.active {
+      background: #2563eb;
+      color: white;
+    }
+  }
+}
+
+.content {
+  flex: 1;
+  padding: 40px;
+}

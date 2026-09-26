@@ -1,0 +1,19 @@
+<div class="app-container">
+  <aside class="sidebar">
+    <div class="logo">
+      <h1>FinanGo</h1>
+    </div>
+
+    <nav>
+      <a routerLink="/dashboard" routerLinkActive="active"> Dashboard </a>
+
+      <a routerLink="/accounts" routerLinkActive="active"> Cuentas </a>
+
+      <a routerLink="/transactions" routerLinkActive="active"> Movimientos </a>
+    </nav>
+  </aside>
+
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+</div>

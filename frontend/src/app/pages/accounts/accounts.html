@@ -1,0 +1,64 @@
+<div class="accounts-page">
+  <div class="header">
+    <h1>Cuentas</h1>
+    <p>Administra tus cuentas bancarias</p>
+  </div>
+
+  <div class="account-form-container">
+    <h2>Agregar cuenta</h2>
+
+    <form [formGroup]="accountForm" (ngSubmit)="addAccount()">
+      <div class="form-group">
+        <label for="bank"> Banco </label>
+
+        <input id="bank" type="text" formControlName="bank" placeholder="Ej: Santander" />
+      </div>
+
+      <div class="form-group">
+        <label for="accountType"> Tipo de cuenta </label>
+
+        <select id="accountType" formControlName="accountType">
+          <option value="">Selecciona una opción</option>
+
+          <option value="Cuenta RUT">Cuenta RUT</option>
+
+          <option value="Cuenta Corriente">Cuenta Corriente</option>
+
+          <option value="Cuenta Vista">Cuenta Vista</option>
+
+          <option value="Cuenta de Ahorro">Cuenta de Ahorro</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="balance"> Saldo inicial </label>
+
+        <input id="balance" type="number" formControlName="balance" placeholder="Ej: 250000" />
+      </div>
+
+      <button type="submit" [disabled]="accountForm.invalid">Agregar cuenta</button>
+    </form>
+  </div>
+
+  <section class="accounts-list">
+    <h2>Mis cuentas</h2>
+
+    <div class="account-grid">
+      @for (account of accounts; track account.id) {
+        <div class="account-card">
+          <p class="bank">
+            {{ account.bank }}
+          </p>
+
+          <h3>
+            {{ account.balance | currency: 'CLP' : 'symbol-narrow' : '1.0-0' : 'es-CL' }}
+          </h3>
+
+          <span>
+            {{ account.accountType }}
+          </span>
+        </div>
+      }
+    </div>
+  </section>
+</div>

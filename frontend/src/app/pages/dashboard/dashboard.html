@@ -1,0 +1,40 @@
+<div class="dashboard">
+  <div class="header">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Resumen de tus finanzas</p>
+    </div>
+  </div>
+
+  <section class="summary">
+    <div class="balance-card">
+      <p>Saldo total</p>
+
+      <h2>{{ totalBalance | currency: 'CLP' : 'symbol-narrow' : '1.0-0' : 'es-CL' }}</h2>
+
+      <span> Disponible en todas tus cuentas </span>
+    </div>
+  </section>
+
+  <section class="accounts">
+    <h2>Mis cuentas</h2>
+
+    <div class="account-grid">
+      @for (account of accounts; track account.id) {
+        <div class="account-card">
+          <p>
+            {{ account.bank }}
+          </p>
+
+          <h3>
+            {{ account.balance | currency: 'CLP' : 'symbol-narrow' : '1.0-0' : 'es-CL' }}
+          </h3>
+
+          <span>
+            {{ account.accountType }}
+          </span>
+        </div>
+      }
+    </div>
+  </section>
+</div>
