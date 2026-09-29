@@ -13,4 +13,47 @@ model Account {
   accountType String
   balance     Int
   createdAt   DateTime @default(now())
+  transactions Transaction[]
+  source String @default("MANUAL")
+  bankImportKey String? @unique
+  last4 String?
+  balanceAsOf DateTime? @db.Date
+  statements Statement[]
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+model Transaction {
+  id          Int             @id @default(autoincrement())
+  accountId   Int
+  account     Account         @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  type        TransactionType
+  amount      Int
+  date        DateTime        @db.Date
+  description String
+  category    String
+  createdAt   DateTime        @default(now())
+  statementId Int?
+  statement Statement? @relation(fields: [statementId], references: [id], onDelete: Restrict)
+  balanceAfter Int?
+
+  @@index([accountId, date])
+  @@index([date, id])
+}
+
+model Statement {
+  id Int @id @default(autoincrement())
+  accountId Int
+  account Account @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  period String
+  fingerprint String @unique
+  openingBalance Int
+  closingBalance Int
+  filename String
+  importedAt DateTime @default(now())
+  transactions Transaction[]
+  @@unique([accountId, period])
 }

@@ -97,3 +97,17 @@ button {
     color: #9ca3af;
   }
 }
+
+.form-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.secondary { background: #e5e7eb; color: #111827; }
+.edit-button { display: block; margin-top: 16px; }
+small { color: #4b5563; line-height: 1.4; }
+[role="alert"] { color: #b91c1c; }
+[role="status"] { color: #374151; }
+@media (max-width: 900px) {
+  form { grid-template-columns: 1fr 1fr; }
+  .account-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  form, .account-grid { grid-template-columns: 1fr; }
+}

@@ -5,9 +5,9 @@
   </div>
 
   <div class="account-form-container">
-    <h2>Agregar cuenta</h2>
+    <h2>{{ isEditing() ? "Editar cuenta" : "Agregar cuenta" }}</h2>
 
-    <form [formGroup]="accountForm" (ngSubmit)="addAccount()">
+    <form [formGroup]="accountForm" (ngSubmit)="saveAccount()">
       <div class="form-group">
         <label for="bank"> Banco </label>
 
@@ -31,20 +31,33 @@
       </div>
 
       <div class="form-group">
-        <label for="balance"> Saldo inicial </label>
+        <label for="balance"> {{ isEditing() ? "Saldo actual" : "Saldo inicial" }} </label>
 
-        <input id="balance" type="number" formControlName="balance" placeholder="Ej: 250000" />
+        <input id="balance" type="text" inputmode="numeric" formControlName="balance" placeholder="Ej: 223.000" aria-describedby="balance-help" />
+        <small id="balance-help">Pesos enteros. 223000, 223.000 o 223,000 equivalen a $223.000.</small>
+        @if (accountForm.controls.balance.invalid && accountForm.controls.balance.dirty) {
+          <small role="alert">Usa pesos enteros entre 0 y 2.147.483.647, sin decimales.</small>
+        }
       </div>
 
-      <button type="submit" [disabled]="accountForm.invalid">Agregar cuenta</button>
+      <div class="form-actions">
+        <button type="submit" [disabled]="accountForm.invalid || saving()">{{ saving() ? "Guardando…" : isEditing() ? "Guardar cambios" : "Agregar cuenta" }}</button>
+        @if (isEditing()) {
+          <button type="button" class="secondary" (click)="cancelEdit()" [disabled]="saving()">Cancelar</button>
+        }
+      </div>
     </form>
   </div>
 
+  @if (error()) { <p role="alert">{{ error() }}</p><button type="button" (click)="loadAccounts()" [disabled]="loading() || saving()">Volver a cargar cuentas</button> }
+  @if (notice()) { <p role="status">{{ notice() }}</p> }
+  @if (loading()) { <p role="status">Cargando cuentas…</p> }
+  @if (!loading() && !error() && accounts().length === 0) { <p>Aún no tienes cuentas. Agrega la primera.</p> }
   <section class="accounts-list">
     <h2>Mis cuentas</h2>
 
     <div class="account-grid">
-      @for (account of accounts; track account.id) {
+      @for (account of accounts(); track account.id) {
         <div class="account-card">
           <p class="bank">
             {{ account.bank }}
@@ -57,6 +70,12 @@
           <span>
             {{ account.accountType }}
           </span>
+          @if (account.source === 'BANK_STATEMENT') {
+            <p>Cartola · •••• {{ account.last4 }}<br>Saldo documentado al {{ account.balanceAsOf | date:'dd/MM/yyyy':'UTC' }}</p>
+          } @else {
+            <p>Registro manual · no incluido en el total de cartolas</p>
+            <button type="button" class="edit-button" (click)="editAccount(account)" [disabled]="saving()">Editar cuenta</button>
+          }
         </div>
       }
     </div>

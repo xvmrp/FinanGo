@@ -1,0 +1,27 @@
+<div class="imports-page">
+  <h1>Cartolas bancarias</h1>
+  <p>Importa PDF históricos de tu cuenta corriente Falabella. Los archivos se leen localmente en tu servidor y no se envían a un proveedor externo.</p>
+  <section><h2>Importar Falabella</h2>
+    <p>El saldo corresponde al cierre de la cartola más reciente. Importar movimientos históricos no vuelve a descontarlos. Las cuentas manuales quedan separadas.</p>
+    <label>Seleccionar cartolas PDF (hasta 10 MB por archivo)<input type="file" accept="application/pdf,.pdf" multiple (change)="select($event)" [disabled]="busy()" /></label>
+    @if (busy()) { <p role="status">Procesando cartolas…</p> }
+    @if (error()) { <p role="alert">{{ error() }}</p> }
+    @if (notice()) { <p role="status">{{ notice() }} <a routerLink="/dashboard">Ver mis cifras</a></p> }
+    @if (previews().length) {
+      <h3>Vista previa validada</h3>
+      @for (item of previews(); track $index) {
+        <article><strong>{{ item.file.name }}</strong><p>Cuenta •••• {{ item.data.last4 }} · {{ item.data.period }} · {{ item.data.count }} movimientos · Saldo de cierre {{ item.data.closingBalance | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</p>
+          @if (item.data.alreadyImported) { <p>Esta cartola ya está importada.</p> }
+          <details><summary>Revisar movimientos</summary><div class="scroll"><table><thead><tr><th>Fecha</th><th>Descripción</th><th>Cargo / abono</th><th>Saldo</th></tr></thead><tbody>@for (row of item.data.rows; track $index) { <tr><td>{{ row.date | date:'dd/MM/yyyy':'UTC' }}</td><td>{{ row.description }}</td><td>{{ row.type === 'INCOME' ? '+' : '−' }}{{ row.amount | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</td><td>{{ row.balanceAfter | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</td></tr> }</tbody></table></div></details>
+        </article>
+      }
+      <button type="button" (click)="confirm()" [disabled]="busy()">Confirmar importación</button>
+    }
+  </section>
+  <section><h2>Cartolas importadas</h2><p>Solo los meses listados tienen historial importado. Un mes sin cartola no significa que no hayas tenido movimientos.</p>
+    <div class="scroll"><table><thead><tr><th>Período</th><th>Cuenta</th><th>Movimientos</th><th>Saldo al cierre</th><th>Archivo</th></tr></thead><tbody>
+      @for (item of history(); track $index) { <tr><td>{{ item.period }}</td><td>•••• {{ item.account.last4 }}</td><td>{{ item._count.transactions }}</td><td>{{ item.closingBalance | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</td><td>{{ item.filename }}</td></tr> }
+    </tbody></table></div>
+    @if (!history().length) { <p>Aún no hay cartolas importadas.</p> }
+  </section>
+</div>

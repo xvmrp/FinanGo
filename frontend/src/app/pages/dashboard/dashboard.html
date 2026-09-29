@@ -1,40 +1,38 @@
 <div class="dashboard">
-  <div class="header">
-    <div>
-      <h1>Dashboard</h1>
-      <p>Resumen de tus finanzas</p>
-    </div>
+  <div class="header"><div><h1>Dashboard</h1><p>Resumen de tus finanzas</p></div>
+    <label>Mes del resumen<input type="month" [ngModel]="selectedMonth()" (ngModelChange)="changeMonth($event)" /></label>
   </div>
-
-  <section class="summary">
-    <div class="balance-card">
-      <p>Saldo total</p>
-
-      <h2>{{ totalBalance | currency: 'CLP' : 'symbol-narrow' : '1.0-0' : 'es-CL' }}</h2>
-
-      <span> Disponible en todas tus cuentas </span>
+  @if (loading()) {
+    <p role="status">Cargando resumen…</p>
+  } @else if (error()) {
+    <p role="alert">{{ error() }}</p><button type="button" (click)="loadAccounts()">Reintentar</button>
+  } @else {
+    @if (hasBankAccounts()) { <p><label><input type="checkbox" [ngModel]="showManual()" (ngModelChange)="showManual.set($event)" /> Ver registros manuales en lugar de cartolas</label></p> }
+    @if (hasBankAccounts() && !showManual()) { <p class="empty">Datos bancarios importados, sin conexión en tiempo real. Cada cuenta muestra la fecha de su saldo. Los abonos y cargos pueden incluir traspasos propios y pagos de tarjeta; no equivalen necesariamente a ingresos y gastos personales. <a routerLink="/imports">Actualizar cartolas</a></p> }
+    <section class="summary" aria-label="Saldos y resumen mensual">
+      <div class="balance-card"><p>Saldo total {{ hasBankAccounts() && !showManual() ? "documentado" : "manual" }}</p><h2>{{ totalBalance() | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</h2><span>Suma de los últimos saldos registrados de las cuentas visibles; pueden corresponder a fechas distintas</span></div>
+      <div class="metric"><p>Abonos del mes</p><h2 class="positive">{{ monthlyIncome() | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</h2></div>
+      <div class="metric"><p>Cargos del mes</p><h2 class="negative">{{ monthlyExpenses() | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</h2></div>
+      <div class="metric"><p>Balance del mes</p><h2 [class.negative]="monthlyBalance() < 0" [class.positive]="monthlyBalance() >= 0">{{ monthlyBalance() | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</h2><small>Abonos menos cargos registrados</small></div>
+    </section>
+    @if (monthlyTransactions().length === 0) { <p class="empty">No hay movimientos importados o registrados en este mes; puede faltar la cartola. Puedes elegir otro mes o <a routerLink="/transactions">registrar un movimiento</a>.</p> }
+    <div class="detail-grid">
+      <section class="panel"><h2>Cargos por categoría</h2><p class="muted">Distribución del mes seleccionado</p>
+        @for (group of expensesByCategory(); track group.category) {
+          <div class="category"><div><strong>{{ group.category }}</strong><span>{{ group.amount | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }} · {{ group.percent | number:'1.0-1':'es-CL' }}%</span></div><div class="bar" aria-hidden="true"><div [style.width.%]="group.percent"></div></div></div>
+        } @empty { <p>No hay gastos registrados en este mes.</p> }
+      </section>
+      <section class="panel"><h2>Últimos movimientos</h2><p class="muted">Los cinco más recientes del mes seleccionado</p>
+        <ul class="recent-list">@for (item of recentTransactions(); track item.id) {
+          <li><div><strong>{{ item.description }}</strong><small>{{ item.date | date:'dd/MM/yyyy':'UTC' }} · {{ item.account.bank }} · {{ item.category }}</small></div><span [class.positive]="item.type === 'INCOME'" [class.negative]="item.type === 'EXPENSE'">{{ item.type === 'INCOME' ? '+' : '−' }}{{ item.amount | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</span></li>
+        } @empty { <li>No hay movimientos para mostrar.</li> }</ul>
+        <a routerLink="/transactions">Ver y administrar movimientos</a>
+      </section>
     </div>
-  </section>
-
-  <section class="accounts">
-    <h2>Mis cuentas</h2>
-
-    <div class="account-grid">
-      @for (account of accounts; track account.id) {
-        <div class="account-card">
-          <p>
-            {{ account.bank }}
-          </p>
-
-          <h3>
-            {{ account.balance | currency: 'CLP' : 'symbol-narrow' : '1.0-0' : 'es-CL' }}
-          </h3>
-
-          <span>
-            {{ account.accountType }}
-          </span>
-        </div>
-      }
-    </div>
-  </section>
+    <section class="accounts"><h2>Mis cuentas</h2><div class="account-grid">
+      @for (account of visibleAccounts(); track account.id) {
+        <div class="account-card"><p>{{ account.bank }}</p><h3>{{ account.balance | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</h3><span>{{ account.accountType }}</span>@if (account.balanceAsOf) { <p>Cartola al {{ account.balanceAsOf | date:"dd/MM/yyyy":"UTC" }} · •••• {{ account.last4 }}</p> }</div>
+      } @empty { <p>Aún no tienes cuentas. <a routerLink="/accounts">Agregar una cuenta</a></p> }
+    </div></section>
+  }
 </div>

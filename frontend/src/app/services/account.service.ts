@@ -17,6 +17,10 @@ export class AccountService {
     return this.http.get<Account[]>(this.apiUrl);
   }
 
+  updateAccount(id: number, account: Omit<Account, 'id'>): Observable<Account> {
+    return this.http.put<Account>(`${this.apiUrl}/${id}`, account);
+  }
+
   createAccount(account: Omit<Account, 'id'>): Observable<Account> {
     return this.http.post<Account>(
       this.apiUrl,

@@ -1,1 +1,74 @@
-<p>transactions works!</p>
+<div class="transactions-page">
+  <header><h1>Movimientos</h1><p>Registra tus ingresos y gastos y mantén tus saldos al día.</p></header>
+  @if (loading()) { <p role="status">Cargando movimientos…</p> }
+  @if (loadError()) {
+    <p role="alert">{{ loadError() }}</p><button type="button" (click)="load()">Reintentar</button>
+  }
+  @if (!loading() && !loadError()) {
+    @if (accounts().length === 0) {
+      <section class="panel"><h2>Agrega tu primera cuenta</h2><p>Necesitas una cuenta para registrar movimientos.</p><a routerLink="/accounts">Ir a Cuentas</a></section>
+    } @else if (manualAccounts().length) {
+      <section class="panel">
+        <h2>{{ editingId() === null ? "Registrar movimiento manual" : "Editar movimiento manual" }}</h2>
+        <form [formGroup]="form" (ngSubmit)="save()" class="entry-form">
+          <label>Cuenta
+            <select formControlName="accountId">
+              <option value="">Selecciona una cuenta</option>
+              @for (account of manualAccounts(); track account.id) {
+                <option [value]="account.id">{{ account.bank }} · {{ account.accountType }} · {{ account.balance | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</option>
+              }
+            </select>
+          </label>
+          <label>Tipo<select formControlName="type"><option value="EXPENSE">Gasto</option><option value="INCOME">Ingreso</option></select></label>
+          <label>Monto (CLP)
+            <input type="text" inputmode="numeric" formControlName="amount" placeholder="Ej: 15.000" aria-describedby="amount-help" />
+            <small id="amount-help">Pesos enteros. 15000, 15.000 o 15,000 equivalen a $15.000.</small>
+            @if (form.controls.amount.dirty && form.controls.amount.invalid) { <small role="alert">Ingresa un monto entre $1 y $2.147.483.647, sin decimales.</small> }
+          </label>
+          <label>Fecha<input type="date" formControlName="date" min="1900-01-01" /></label>
+          <label>Categoría<select formControlName="category"><option value="">Selecciona una categoría</option>@for (category of categories; track category) { <option [value]="category">{{ category }}</option> }</select></label>
+          <label>Descripción<input type="text" formControlName="description" maxlength="200" placeholder="Ej: Compra de supermercado" /></label>
+          <div class="form-footer"><p>El ingreso suma al saldo y el gasto lo descuenta. No se permiten gastos mayores al saldo disponible. La fecha sirve para el historial; el saldo cambia al guardar.</p>
+            <button type="submit" [disabled]="form.invalid || saving()">{{ saving() ? 'Guardando…' : editingId() === null ? 'Registrar movimiento' : 'Guardar cambios' }}</button>
+          </div>
+          @if (editingId() !== null) { <button type="button" class="secondary" (click)="cancelEdit()" [disabled]="saving()">Cancelar edición</button> }
+        </form>
+        @if (saveError()) { <p role="alert">{{ saveError() }}</p> }
+        @if (notice()) { <p role="status">{{ notice() }}</p> }
+      </section>
+    }
+    <section class="panel">
+      <h2>Historial de movimientos</h2><p>Las cartolas se muestran por defecto cuando existen. Selecciona una cuenta manual para ver sus registros. Los abonos y cargos bancarios originales son de solo lectura.</p>
+      @if (pendingDelete(); as item) {
+        <section class="delete-confirm" aria-labelledby="delete-title">
+          <h3 id="delete-title">¿Eliminar este movimiento?</h3>
+          <p>{{ item.description }} · {{ item.date | date:"dd/MM/yyyy":"UTC" }} · {{ item.account.bank }} · {{ item.amount | currency:"CLP":"symbol-narrow":"1.0-0":"es-CL" }}</p>
+          <p>{{ item.type === "INCOME" ? "Se descontará este ingreso del saldo actual de la cuenta." : "Se devolverá este gasto al saldo actual de la cuenta." }} Esta acción no se puede deshacer.</p>
+          <button type="button" class="danger" (click)="confirmDelete()" [disabled]="saving()">{{ saving() ? "Eliminando…" : "Confirmar eliminación" }}</button>
+          <button type="button" class="secondary" (click)="pendingDelete.set(null)" [disabled]="saving()">Cancelar</button>
+          @if (deleteError()) { <p role="alert">{{ deleteError() }}</p> }
+        </section>
+      }
+      <form [formGroup]="filterForm" (ngSubmit)="applyFilters()" class="filters">
+        <label>Cuenta<select formControlName="accountId"><option value="">Todas las cuentas</option>@for (account of accounts(); track account.id) { <option [value]="account.id">{{ account.bank }} · {{ account.accountType }}</option> }</select></label>
+        <label>Tipo<select formControlName="type"><option value="">Todos</option><option value="INCOME">Ingresos</option><option value="EXPENSE">Gastos</option></select></label>
+        <label>Desde<input type="date" formControlName="from" /></label>
+        <label>Hasta<input type="date" formControlName="to" /></label>
+        <button type="submit">Filtrar</button><button type="button" class="secondary" (click)="clearFilters()">Limpiar</button>
+      </form>
+      @if (invalidRange()) { <p role="alert">La fecha inicial debe ser anterior o igual a la final.</p> }
+      <div class="totals"><p>Abonos filtrados <strong>{{ income() | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</strong></p><p>Cargos filtrados <strong>{{ expenses() | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</strong></p></div>
+      @if (filteredTransactions().length === 0) {
+        <p>{{ transactions().length === 0 ? 'Aún no tienes movimientos. Registra el primero arriba.' : 'No hay movimientos con estos filtros.' }}</p>
+      } @else if (manualAccounts().length) {
+        <div class="table-scroll"><table>
+          <caption>{{ filteredTransactions().length }} movimientos, ordenados del más reciente al más antiguo</caption>
+          <thead><tr><th scope="col">Fecha</th><th scope="col">Cuenta</th><th scope="col">Descripción</th><th scope="col">Categoría</th><th scope="col">Tipo</th><th scope="col">Monto</th><th scope="col">Acciones</th></tr></thead>
+          <tbody>@for (item of filteredTransactions(); track item.id) {
+            <tr><td>{{ item.date | date:'dd/MM/yyyy':'UTC' }}</td><td>{{ item.account.bank }}<small>{{ item.account.accountType }}</small></td><td>{{ item.description }}</td><td>{{ item.category }}</td><td>{{ item.type === 'INCOME' ? 'Abono' : 'Cargo' }}</td><td class="amount" [class.income]="item.type === 'INCOME'" [class.expense]="item.type === 'EXPENSE'">{{ item.type === 'INCOME' ? '+' : '−' }}{{ item.amount | currency:'CLP':'symbol-narrow':'1.0-0':'es-CL' }}</td><td>@if (item.statementId) { <span>Cartola · solo lectura</span> } @else { <div class="row-actions"><button type="button" (click)="edit(item)" [disabled]="saving()">Editar</button><button type="button" class="danger" (click)="requestDelete(item)" [disabled]="saving()">Eliminar</button></div> }</td></tr>
+          }</tbody>
+        </table></div>
+      }
+    </section>
+  }
+</div>
