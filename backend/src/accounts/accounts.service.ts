@@ -1,43 +1,27 @@
 import { Injectable } from '@nestjs/common';
+
+import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateAccountDto } from './dto/create-account.dto.js';
 
 @Injectable()
 export class AccountsService {
-
-  private accounts = [
-    {
-      id: 1,
-      bank: 'BancoEstado',
-      accountType: 'Cuenta RUT',
-      balance: 650000
-    },
-    {
-      id: 2,
-      bank: 'Banco de Chile',
-      accountType: 'Cuenta Corriente',
-      balance: 500000
-    },
-    {
-      id: 3,
-      bank: 'Banco Falabella',
-      accountType: 'Cuenta Corriente',
-      balance: 300000
-    }
-  ];
+  constructor(private readonly prisma: PrismaService) {}
 
   findAll() {
-    return this.accounts;
+    return this.prisma.account.findMany({
+      orderBy: {
+        id: 'asc',
+      },
+    });
   }
 
   create(createAccountDto: CreateAccountDto) {
-
-    const newAccount = {
-      id: this.accounts.length + 1,
-      ...createAccountDto
-    };
-
-    this.accounts.push(newAccount);
-
-    return newAccount;
+    return this.prisma.account.create({
+      data: {
+        bank: createAccountDto.bank,
+        accountType: createAccountDto.accountType,
+        balance: createAccountDto.balance,
+      },
+    });
   }
 }

@@ -15,7 +15,8 @@ export class AccountsComponent implements OnInit {
   private accountService = inject(AccountService);
   private fb = inject(FormBuilder);
 
-  accounts: Account[] = [];
+  accounts: Account[] = [
+  ];
 
   accountForm = this.fb.nonNullable.group({
     bank: ['', Validators.required],
